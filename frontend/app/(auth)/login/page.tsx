@@ -1,27 +1,40 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Card from '@/components/ui/Card';
+import { authAPI } from '@/lib/api';
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
-    // TODO: Appel API plus tard (Zineb)
-    console.log('Login:', { email, password });
-    
-    setTimeout(() => {
+    setError('');
+
+    try {
+      // Appel API (sera connecté par Zineb plus tard)
+      await authAPI.login({
+        username: email, // ou email selon l'API
+        password,
+      });
+
+      // Rediriger vers le dashboard
+      router.push('/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Erreur de connexion');
+      console.error('Login error:', err);
+    } finally {
       setLoading(false);
-      alert('Login fonctionnel ! (API à connecter)');
-    }, 1000);
+    }
   };
 
   return (
@@ -31,6 +44,12 @@ export default function LoginPage() {
           <h1 className="text-3xl font-bold text-gray-800">LeanAgile</h1>
           <p className="text-gray-600 mt-2">Connectez-vous à votre compte</p>
         </div>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
