@@ -7,6 +7,7 @@ router.register(r'projects', views.ProjetViewSet, basename='projet')
 router.register(r'tasks', views.TacheViewSet, basename='tache')
 router.register(r'costs', views.CoutViewSet, basename='cout')
 router.register(r'non-conformities', views.NonConformiteViewSet, basename='nonconformite')
+router.register(r'corrective-actions', views.ActionCorrectiveViewSet, basename='actioncorrective')
 
 urlpatterns = [
     path('', include(router.urls)),

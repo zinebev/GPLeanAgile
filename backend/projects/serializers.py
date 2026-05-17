@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Projet, Tache, Cout, NonConformite
+from .models import Projet, Tache, Cout, NonConformite , ActionCorrective
 
 class TacheSerializer(serializers.ModelSerializer):
     class Meta:
@@ -26,4 +26,9 @@ class CoutSerializer(serializers.ModelSerializer):
 class NonConformiteSerializer(serializers.ModelSerializer):
     class Meta:
         model = NonConformite
+        fields = '__all__'
+
+class ActionCorrectiveSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ActionCorrective
         fields = '__all__'

@@ -4,8 +4,8 @@ from rest_framework import viewsets, permissions
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.db.models import Sum
-from .models import Projet, Tache, Cout, NonConformite
-from .serializers import ProjetSerializer, TacheSerializer, CoutSerializer, NonConformiteSerializer
+from .models import Projet, Tache, Cout, NonConformite , ActionCorrective
+from .serializers import ProjetSerializer, TacheSerializer, CoutSerializer, NonConformiteSerializer ,  ActionCorrectiveSerializer
 
 
 class ProjetViewSet(viewsets.ModelViewSet):
@@ -74,3 +74,10 @@ class NonConformiteViewSet(viewsets.ModelViewSet):
 @login_required
 def dashboard(request):
     return render(request, 'projects/dashboard.html')
+
+class ActionCorrectiveViewSet(viewsets.ModelViewSet):
+    serializer_class = ActionCorrectiveSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return ActionCorrective.objects.filter(non_conformite__projet__chef_projet=self.request.user)
