@@ -33,3 +33,17 @@ class Kaizen(models.Model):
 
     def __str__(self):
         return self.titre
+
+class VSM(models.Model):
+    projet = models.ForeignKey(Projet, on_delete=models.CASCADE)
+    etape = models.CharField(max_length=200)
+    temps_va = models.FloatField(help_text="Temps à valeur ajoutée (minutes)")
+    temps_attente = models.FloatField(help_text="Temps d'attente (minutes)")
+    ordre = models.IntegerField(default=0)
+
+    def ratio_efficacite(self):
+        total = self.temps_va + self.temps_attente
+        return round((self.temps_va / total) * 100, 2) if total > 0 else 0
+
+    def __str__(self):
+        return f"{self.etape} - {self.projet.nom}"
