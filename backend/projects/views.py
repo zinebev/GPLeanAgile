@@ -5,12 +5,13 @@ from django.db.models import Sum
 from .models import Projet, Tache, Cout, NonConformite, ActionCorrective
 from .serializers import ProjetSerializer, TacheSerializer, CoutSerializer, NonConformiteSerializer, ActionCorrectiveSerializer
 
+
 class ProjetViewSet(viewsets.ModelViewSet):
     serializer_class = ProjetSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return Projet.objects.all()  # Retourne tous les projets
+        return Projet.objects.all()
 
     def perform_create(self, serializer):
         serializer.save(chef_projet=self.request.user)
@@ -103,6 +104,29 @@ class ProjetViewSet(viewsets.ModelViewSet):
             'velocite': velocite_data,
             'taux_avancement': round(taux_avancement, 2)
         })
+
+    @action(detail=True, methods=['get'])
+    def export_data(self, request, pk=None):
+        projet = self.get_object()
+        taches = projet.tache_set.all()
+        couts = projet.cout_set.all()
+        non_conformites = projet.nonconformite_set.all()
+        data = {
+            'projet': {
+                'id': projet.id,
+                'nom': projet.nom,
+                'description': projet.description,
+                'date_debut': projet.date_debut,
+                'date_fin': projet.date_fin,
+                'budget_prevu': float(projet.budget_prevu),
+                'budget_reel': float(projet.budget_reel),
+                'statut': projet.statut,
+            },
+            'taches': list(taches.values()),
+            'couts': list(couts.values()),
+            'non_conformites': list(non_conformites.values()),
+        }
+        return Response(data)
 
 
 class TacheViewSet(viewsets.ModelViewSet):
