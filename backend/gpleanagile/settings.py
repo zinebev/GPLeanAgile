@@ -20,6 +20,7 @@ INSTALLED_APPS = [
     'account',
     'projects',
     'lean',
+    'agile',
 ]
 
 MIDDLEWARE = [

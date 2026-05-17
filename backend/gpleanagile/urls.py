@@ -7,5 +7,6 @@ urlpatterns = [
     path('api/', include('account.urls')),
     path('api/', include('projects.urls')),
     path('api/lean/', include('lean.urls')),
+    path('api/agile/', include('agile.urls')),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
