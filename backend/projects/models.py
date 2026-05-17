@@ -9,8 +9,8 @@ class Projet(models.Model):
     ]
     nom = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-    date_debut = models.DateField()
-    date_fin = models.DateField()
+    date_debut = models.DateField(null=True, blank=True)
+    date_fin = models.DateField(null=True, blank=True)
     budget_prevu = models.DecimalField(max_digits=10, decimal_places=2)
     budget_reel = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default='en_attente')
@@ -30,8 +30,8 @@ class Tache(models.Model):
     titre = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     assignee = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True) 
-    date_debut = models.DateField()
-    date_fin = models.DateField()
+    date_debut = models.DateField(null=True, blank=True)
+    date_fin = models.DateField(null=True, blank=True)
     statut = models.CharField(max_length=20, choices=STATUT_CHOICES, default='todo')
     priorite = models.IntegerField(default=1)
 

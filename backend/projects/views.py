@@ -1,19 +1,16 @@
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
 from rest_framework import viewsets, permissions
-from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.response import Response
 from django.db.models import Sum
-from .models import Projet, Tache, Cout, NonConformite , ActionCorrective
-from .serializers import ProjetSerializer, TacheSerializer, CoutSerializer, NonConformiteSerializer ,  ActionCorrectiveSerializer
-
+from .models import Projet, Tache, Cout, NonConformite, ActionCorrective
+from .serializers import ProjetSerializer, TacheSerializer, CoutSerializer, NonConformiteSerializer, ActionCorrectiveSerializer
 
 class ProjetViewSet(viewsets.ModelViewSet):
     serializer_class = ProjetSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return Projet.objects.filter(chef_projet=self.request.user)
+        return Projet.objects.all()  # Retourne tous les projets
 
     def perform_create(self, serializer):
         serializer.save(chef_projet=self.request.user)
@@ -45,11 +42,13 @@ class ProjetViewSet(viewsets.ModelViewSet):
             'budget_reel': float(projet.budget_reel),
             'taux_non_conformite': round(taux_nc, 2),
         })
+
     @action(detail=True, methods=['get'])
     def timeline(self, request, pk=None):
         projet = self.get_object()
         taches = projet.tache_set.all()
         data = []
+        import datetime
         for tache in taches:
             data.append({
                 'id': tache.id,
@@ -58,7 +57,7 @@ class ProjetViewSet(viewsets.ModelViewSet):
                 'date_fin': tache.date_fin,
                 'statut': tache.statut,
                 'priorite': tache.priorite,
-                'en_retard': tache.date_fin < __import__('datetime').date.today() and tache.statut != 'done' if tache.date_fin else False
+                'en_retard': tache.date_fin < datetime.date.today() and tache.statut != 'done' if tache.date_fin else False
             })
         return Response(data)
 
@@ -68,7 +67,8 @@ class ProjetViewSet(viewsets.ModelViewSet):
         taches = projet.tache_set.all()
         total = taches.count()
         terminees = taches.filter(statut='done').count()
-        en_retard = [t for t in taches if t.date_fin and t.date_fin < __import__('datetime').date.today() and t.statut != 'done']
+        import datetime
+        en_retard = [t for t in taches if t.date_fin and t.date_fin < datetime.date.today() and t.statut != 'done']
         return Response({
             'total_taches': total,
             'taches_terminees': terminees,
@@ -85,7 +85,6 @@ class ProjetViewSet(viewsets.ModelViewSet):
         taches_terminees = taches.filter(statut='done').count()
         taux_avancement = (taches_terminees / total_taches) * 100 if total_taches > 0 else 0
         spi = taux_avancement / 100 if taux_avancement > 0 else 0
-        from django.db.models import Sum
         couts = projet.cout_set.all()
         total_prevu = couts.aggregate(Sum('montant_prevu'))['montant_prevu__sum'] or 0
         total_reel = couts.aggregate(Sum('montant_reel'))['montant_reel__sum'] or 0
@@ -130,45 +129,9 @@ class NonConformiteViewSet(viewsets.ModelViewSet):
         return NonConformite.objects.filter(projet__chef_projet=self.request.user)
 
 
-@login_required
-def dashboard(request):
-    return render(request, 'projects/dashboard.html')
-
 class ActionCorrectiveViewSet(viewsets.ModelViewSet):
     serializer_class = ActionCorrectiveSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         return ActionCorrective.objects.filter(non_conformite__projet__chef_projet=self.request.user)
-
-@action(detail=True, methods=['get'])
-def timeline(self, request, pk=None):
-    projet = self.get_object()
-    taches = projet.tache_set.all()
-    data = []
-    for tache in taches:
-        data.append({
-            'id': tache.id,
-            'titre': tache.titre,
-            'date_debut': tache.date_debut,
-            'date_fin': tache.date_fin,
-            'statut': tache.statut,
-            'priorite': tache.priorite,
-            'en_retard': tache.date_fin < __import__('datetime').date.today() and tache.statut != 'done' if tache.date_fin else False
-        })
-    return Response(data)
-
-@action(detail=True, methods=['get'])
-def progress(self, request, pk=None):
-    projet = self.get_object()
-    taches = projet.tache_set.all()
-    total = taches.count()
-    terminees = taches.filter(statut='done').count()
-    en_retard = [t for t in taches if t.date_fin and t.date_fin < __import__('datetime').date.today() and t.statut != 'done']
-    
-    return Response({
-        'total_taches': total,
-        'taches_terminees': terminees,
-        'taches_en_retard': len(en_retard),
-        'progression': round((terminees / total) * 100, 2) if total > 0 else 0
-    })
