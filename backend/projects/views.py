@@ -81,3 +81,35 @@ class ActionCorrectiveViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return ActionCorrective.objects.filter(non_conformite__projet__chef_projet=self.request.user)
+
+@action(detail=True, methods=['get'])
+def timeline(self, request, pk=None):
+    projet = self.get_object()
+    taches = projet.tache_set.all()
+    data = []
+    for tache in taches:
+        data.append({
+            'id': tache.id,
+            'titre': tache.titre,
+            'date_debut': tache.date_debut,
+            'date_fin': tache.date_fin,
+            'statut': tache.statut,
+            'priorite': tache.priorite,
+            'en_retard': tache.date_fin < __import__('datetime').date.today() and tache.statut != 'done' if tache.date_fin else False
+        })
+    return Response(data)
+
+@action(detail=True, methods=['get'])
+def progress(self, request, pk=None):
+    projet = self.get_object()
+    taches = projet.tache_set.all()
+    total = taches.count()
+    terminees = taches.filter(statut='done').count()
+    en_retard = [t for t in taches if t.date_fin and t.date_fin < __import__('datetime').date.today() and t.statut != 'done']
+    
+    return Response({
+        'total_taches': total,
+        'taches_terminees': terminees,
+        'taches_en_retard': len(en_retard),
+        'progression': round((terminees / total) * 100, 2) if total > 0 else 0
+    })

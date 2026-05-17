@@ -11,5 +11,7 @@ router.register(r'corrective-actions', views.ActionCorrectiveViewSet, basename='
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('projects/<int:pk>/timeline/', views.ProjetViewSet.as_view({'get': 'timeline'}), name='projet-timeline'),
+path('projects/<int:pk>/progress/', views.ProjetViewSet.as_view({'get': 'progress'}), name='projet-progress'),
     path('projects/<int:pk>/kpi/', views.ProjetViewSet.as_view({'get': 'kpi'}), name='projet-kpi'),
 ]
